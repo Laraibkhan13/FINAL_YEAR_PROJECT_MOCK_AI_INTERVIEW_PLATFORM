@@ -29,6 +29,19 @@ function AddNewInterview() {
   const [loading, setLoading] = useState(false)
   const [jsonResponse, setJsonResponse] = useState([])
 
+  const [isAddEnabled, setIsAddEnabled] = useState(false);
+
+  useEffect(() => {
+    const match = localStorage.getItem("percentageMatch");
+    console.log(match);
+    if (match && parseInt(match) > 55) {
+      setIsAddEnabled(true);
+    } else {
+      setIsAddEnabled(false);
+    }
+    // localStorage.removeItem("percentageMatch"); // Optional: prevent reuse
+  }, []);
+
   const router = useRouter()
 
   useEffect(() => { 
@@ -73,14 +86,78 @@ function AddNewInterview() {
     setLoading(false)
   }
 
+  const [matchScore, setMatchScore] = useState(0);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("percentageMatch");
+    const parsed = parseInt(stored, 10);
+    if (!isNaN(parsed)) {
+      setMatchScore(parsed);
+    }
+  }, []);
+  const borderColor = matchScore > 55 ? "border-green-500" : "border-red-500";
+
+  const ATShandler=()=>{
+    localStorage.removeItem("percentageMatch");
+    router.push(`/dashboard/interview/ats`)
+  }
 
   return (
     <div>
-      <div className="p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-sm cursor-pointer transition-all"
+      {/* <div className="border-2 border-green-300 bg-green-50 text-green-800 p-6 rounded-xl shadow-md max-w-xl mx-auto font-sans w-[5000px]">
+  <h3 className="text-lg font-semibold mb-2">Get Ready for Your Interview</h3>
+  <p>
+    To proceed with your new interview, please <span className="font-bold">scan your resume first</span>. 
+  </p>
+</div> */}
+
+      {/* <div className=' flex w-[900px]'>
+      <div className="p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-sm cursor-pointer transition-all m-5"
         onClick={() => setOpenDialog(true)}>
         <h2 className="font-bold text-lg text-center">+ Add New
         </h2>
       </div>
+      <div className="p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-sm cursor-pointer transition-all m-5"
+        onClick={ATShandler}>
+        <h2 className="font-bold text-lg text-center">Scan Resume📑
+        </h2>
+      </div>  
+      </div> */}
+      <div className='flex w-[900px]'>
+        
+      <div
+        className={`p-10 border border-black rounded-lg ${isAddEnabled ? 'bg-secondary hover:scale-105 hover:shadow-sm cursor-pointer' : 'bg-gray-300 cursor-not-allowed'} transition-all m-5`}
+        onClick={() => {
+          if (isAddEnabled) {
+            setOpenDialog(true);
+          }
+        }}
+      >
+        <h2 className="font-bold text-lg text-center">+ Add New</h2>
+      </div>
+
+      <div
+        className="p-10 border border-black rounded-lg bg-secondary hover:scale-105 hover:shadow-sm cursor-pointer transition-all m-5"
+        onClick={ATShandler}
+      >
+        <h2 className="font-bold text-lg text-center">Scan Resume📑</h2>
+      </div>
+      {/* <div
+        className="p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-sm cursor-pointer transition-all m-5"
+        
+      >
+        <h2 className="font-bold text-lg text-center">ATS score:{localStorage.getItem("percentageMatch")
+        }%</h2>
+      </div> */}
+       <div
+      className={`p-10 border-2 rounded-lg bg-secondary hover:scale-105 hover:shadow-sm cursor-pointer transition-all m-5 ${borderColor}`}
+    >
+      <h2 className="font-bold text-lg text-center">
+        ATS score: {matchScore}%
+      </h2>
+    </div>
+    </div>
+      
 
       <Dialog open={openDialog}>
         <DialogContent>
@@ -115,11 +192,13 @@ function AddNewInterview() {
                     {loading ?
                       <>
                         <LoaderCircle className='animate-spin' />
-                        Generating from AI
+                        Starting your Interview
                       </>
                       :
                       'Start Interview'}
                   </Button>
+
+                  {/* <Button onClick={ATShandler}>Scan your resume</Button> */}
                 </div>
               </form>
             </DialogDescription>

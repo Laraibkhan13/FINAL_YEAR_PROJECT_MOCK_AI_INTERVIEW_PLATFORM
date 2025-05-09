@@ -86,6 +86,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
+import jsPDF from 'jspdf'
+
+
+
 
 function Feedback({ params }) {
   const router = useRouter()
@@ -117,6 +121,168 @@ function Feedback({ params }) {
     }
   }
 
+  // const downloadFeedbackPdf = () => {
+  //   const doc = new jsPDF()
+  //   const margin = 10
+  //   let y = margin
+  
+  //   doc.setFontSize(16)
+  //   doc.setTextColor(0, 128, 0)
+  //   doc.text("Interview Feedback Report", margin, y)
+  //   y += 10
+  
+  //   doc.setFontSize(12)
+  //   doc.setTextColor(0, 0, 0)
+  
+  //   feedbackList.forEach((item, index) => {
+  //     const lines = doc.splitTextToSize(
+  //       `Q${index + 1}: ${item.question}\n\nYour Answer: ${item.userAns}\nCorrect Answer: ${item.correctAns}\nRating: ${item.rating}\nFeedback: ${item.feedback}`,
+  //       180
+  //     )
+  
+  //     if (y + lines.length * 8 > 280) {
+  //       doc.addPage()
+  //       y = margin
+  //     }
+  
+  //     doc.text(lines, margin, y)
+  //     y += lines.length * 8 + 4
+  //   })
+  
+  //   doc.save(`Interview_Feedback_${params.interviewId}.pdf`)
+  // }
+  
+  // const downloadFeedbackPdf = () => {
+  //   const doc = new jsPDF()
+  //   const pageWidth = doc.internal.pageSize.getWidth()
+  //   const margin = 15
+  //   let y = margin
+  
+  //   const sectionGap = 10
+  //   const lineHeight = 6
+  //   const maxY = 280
+  
+  //   doc.setFontSize(18)
+  //   doc.setTextColor(34, 139, 34)
+  //   doc.text("Interview Feedback Report", margin, y)
+  //   y += 12
+  
+  //   doc.setFontSize(14)
+  //   doc.setTextColor(0, 0, 0)
+  //   doc.text(`Interview ID: ${params.interviewId}`, margin, y)
+  //   y += 8
+  
+  //   doc.setFontSize(12)
+  
+  //   feedbackList.forEach((item, index) => {
+  //     if (y > maxY) {
+  //       doc.addPage()
+  //       y = margin
+  //     }
+  
+  //     doc.setTextColor(0, 0, 255)
+  //     doc.setFontSize(13)
+  //     doc.text(`Q${index + 1}: ${item.question}`, margin, y)
+  //     y += lineHeight
+  
+  //     doc.setFontSize(12)
+  
+  //     const wrapText = (label, value, color) => {
+  //       if (y > maxY) {
+  //         doc.addPage()
+  //         y = margin
+  //       }
+  //       doc.setTextColor(100)
+  //       doc.text(`${label}`, margin, y)
+  //       y += 6
+  //       doc.setTextColor(...color)
+  //       const lines = doc.splitTextToSize(value || '-', pageWidth - 2 * margin)
+  //       doc.text(lines, margin + 5, y)
+  //       y += lines.length * 6
+  //     }
+  
+  //     wrapText("Your Answer:", item.userAns, [200, 0, 0])
+  //     wrapText("Correct Answer:", item.correctAns, [0, 128, 0])
+  //     wrapText("Rating:", String(item.rating), [0, 0, 0])
+  //     wrapText("Feedback:", item.feedback, [0, 0, 150])
+  
+  //     y += sectionGap
+  //   })
+  
+  //   doc.save(`Interview_Feedback_${params.interviewId}.pdf`)
+  // }
+  
+
+  const downloadFeedbackPdf = () => {
+    const doc = new jsPDF()
+    const margin = 20
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const contentWidth = pageWidth - margin * 2
+    let y = margin
+  
+    const sectionGap = 10
+    const lineHeight = 6
+    const maxY = pageHeight - margin
+  
+    doc.setFontSize(18)
+    doc.setTextColor(34, 139, 34)
+    doc.text("Interview Feedback Report", margin, y)
+    y += 12
+  
+    doc.setFontSize(14)
+    doc.setTextColor(0, 0, 0)
+    doc.text(`Interview ID: ${params.interviewId}`, margin, y)
+    y += 10
+  
+    const drawWrappedText = (label, value, color) => {
+      if (y > maxY - 30) {
+        doc.addPage()
+        y = margin
+      }
+  
+      doc.setFontSize(12)
+      doc.setTextColor(80)
+      doc.text(label, margin, y)
+      y += 5
+  
+      doc.setTextColor(...color)
+      const lines = doc.splitTextToSize(value || '-', contentWidth)
+      lines.forEach((line) => {
+        doc.text(line, margin, y, { maxWidth: contentWidth })
+        y += lineHeight
+      })
+      y += 3
+    }
+  
+    feedbackList.forEach((item, index) => {
+      if (y > maxY - 60) {
+        doc.addPage()
+        y = margin
+      }
+  
+      doc.setTextColor(0, 0, 180)
+      doc.setFontSize(13)
+      const questionLines = doc.splitTextToSize(`Q${index + 1}: ${item.question}`, contentWidth)
+      questionLines.forEach((line) => {
+        doc.text(line, margin, y, { maxWidth: contentWidth })
+        y += lineHeight
+      })
+  
+      y += 4
+  
+      drawWrappedText("Your Answer:", item.userAns, [200, 0, 0])
+      drawWrappedText("Correct Answer:", item.correctAns, [0, 128, 0])
+      drawWrappedText("Rating:", String(item.rating), [0, 0, 0])
+      drawWrappedText("Feedback:", item.feedback, [0, 0, 150])
+  
+      y += sectionGap
+    })
+  
+    doc.save(`Interview_Feedback_${params.interviewId}.pdf`)
+  }
+  
+
   return (
     feedbackList.length > 0 ? (
       <div className='p-10 border rounded-lg my-10'>
@@ -142,11 +308,16 @@ function Feedback({ params }) {
           </Collapsible>
         ))}
         <Button onClick={() => router.replace('/dashboard')}>Go Home</Button>
+        <Button onClick={downloadFeedbackPdf} className='ml-4' variant="outline">
+  Download Feedback as PDF
+</Button>
       </div>
     ) : (
       <div className='flex flex-col items-center justify-center mt-20'>
         <h2 className='font-bold text-xl mb-5'>No feedback available for this interview yet.</h2>
         <Button onClick={() => router.replace('/dashboard')}>Go Home</Button>
+        
+
       </div>
     )
   )
